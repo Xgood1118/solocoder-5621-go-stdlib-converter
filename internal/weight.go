@@ -4,21 +4,21 @@ func init() {
 	RegisterUnit(&Unit{
 		Key:      "gram",
 		Category: CatWeight,
-		Names:    []string{"克", "g", "gram"},
+		Names:    []string{"克", "g", "gram", "公克"},
 		Factor:   NewFactor(1),
 	})
 
 	RegisterUnit(&Unit{
 		Key:      "kilogram",
 		Category: CatWeight,
-		Names:    []string{"千克", "kg", "kilogram"},
+		Names:    []string{"千克", "kg", "kilogram", "公斤"},
 		Factor:   NewFactor(1000),
 	})
 
 	RegisterUnit(&Unit{
 		Key:      "ton",
 		Category: CatWeight,
-		Names:    []string{"吨", "t", "ton", "tonne"},
+		Names:    []string{"吨", "t", "ton", "tonne", "公吨"},
 		Factor:   NewFactor(1e6),
 	})
 

@@ -177,17 +177,32 @@ func Convert(value *big.Float, from, to *Unit) *big.Float {
 	}
 
 	base := new(big.Float).Mul(value, from.Factor)
+	hasOffset := false
 	if from.Offset != nil {
 		base.Add(base, from.Offset)
+		hasOffset = true
 	}
 
 	if to.Offset != nil {
 		result := new(big.Float).Sub(base, to.Offset)
 		result.Quo(result, to.Factor)
+		hasOffset = true
+		if hasOffset {
+			abs := new(big.Float).Abs(result)
+			if abs.Cmp(big.NewFloat(1e-12)) < 0 {
+				return big.NewFloat(0)
+			}
+		}
 		return result
 	}
 
 	result := new(big.Float).Quo(base, to.Factor)
+	if hasOffset {
+		abs := new(big.Float).Abs(result)
+		if abs.Cmp(big.NewFloat(1e-12)) < 0 {
+			return big.NewFloat(0)
+		}
+	}
 	return result
 }
 
@@ -292,18 +307,47 @@ func FormatBigFloat(f *big.Float, prec int) string {
 		prec = 6
 	}
 	f.SetMode(big.ToNearestEven)
+	if f.Sign() == 0 {
+		return "0"
+	}
+	absVal := new(big.Float).Abs(f)
 	s := f.Text('f', prec)
-	if idx := strings.IndexByte(s, '.'); idx >= 0 {
-		frac := strings.TrimRight(s[idx:], "0")
+	trimmed := s
+	if idx := strings.IndexByte(trimmed, '.'); idx >= 0 {
+		frac := strings.TrimRight(trimmed[idx:], "0")
 		if frac == "." {
 			frac = ""
 		}
-		s = s[:idx] + frac
+		trimmed = trimmed[:idx] + frac
 	}
+	if trimmed == "" || trimmed == "-" || trimmed == "0" || trimmed == "-0" {
+		if absVal.Cmp(big.NewFloat(0.000001)) < 0 {
+			gStr := f.Text('g', prec+2)
+			if looksLikeZero(gStr) {
+				return "0"
+			}
+			return gStr
+		}
+	}
+	s = trimmed
 	if s == "" || s == "-" {
 		return "0"
 	}
 	return s
+}
+
+func looksLikeZero(s string) bool {
+	if s == "0" || s == "-0" {
+		return true
+	}
+	upper := strings.ToLower(s)
+	if strings.HasPrefix(upper, "0e") || strings.HasPrefix(upper, "-0e") {
+		return true
+	}
+	if strings.HasPrefix(upper, "0.0000") || strings.HasPrefix(upper, "-0.0000") {
+		return true
+	}
+	return false
 }
 
 func ParseBigFloat(s string) (*big.Float, error) {

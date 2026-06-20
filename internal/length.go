@@ -4,28 +4,28 @@ func init() {
 	RegisterUnit(&Unit{
 		Key:      "meter",
 		Category: CatLength,
-		Names:    []string{"米", "m", "meter"},
+		Names:    []string{"米", "m", "meter", "公尺"},
 		Factor:   NewFactor(1),
 	})
 
 	RegisterUnit(&Unit{
 		Key:      "centimeter",
 		Category: CatLength,
-		Names:    []string{"厘米", "cm", "centimeter"},
+		Names:    []string{"厘米", "cm", "centimeter", "公分"},
 		Factor:   NewFactor(0.01),
 	})
 
 	RegisterUnit(&Unit{
 		Key:      "millimeter",
 		Category: CatLength,
-		Names:    []string{"毫米", "mm", "millimeter"},
+		Names:    []string{"毫米", "mm", "millimeter", "公厘"},
 		Factor:   NewFactor(0.001),
 	})
 
 	RegisterUnit(&Unit{
 		Key:      "kilometer",
 		Category: CatLength,
-		Names:    []string{"千米", "km", "kilometer"},
+		Names:    []string{"千米", "km", "kilometer", "公里"},
 		Factor:   NewFactor(1000),
 	})
 

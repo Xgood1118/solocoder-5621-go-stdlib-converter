@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/solocoder/unitconv/internal"
 	"github.com/spf13/cobra"
@@ -182,7 +183,73 @@ var listCmd = &cobra.Command{
 
 func main() {
 	rootCmd.AddCommand(listCmd)
+	rootCmd.SetArgs(preprocessArgs(os.Args[1:]))
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+func preprocessArgs(args []string) []string {
+	knownFlags := map[string]bool{
+		"-p": true, "--precision": true,
+		"-c": true, "--config": true,
+		"-o": true, "--output": true,
+		"-i": true, "--interactive": true,
+		"-b": true, "--batch": true,
+		"-h": true, "--help": true,
+	}
+	flagsWithValue := map[string]bool{
+		"-p": true, "--precision": true,
+		"-c": true, "--config": true,
+		"-o": true, "--output": true,
+		"-b": true, "--batch": true,
+	}
+
+	result := make([]string, 0, len(args)+1)
+	skipNext := false
+	foundDashDash := false
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if foundDashDash {
+			result = append(result, arg)
+			continue
+		}
+		if arg == "--" {
+			foundDashDash = true
+			result = append(result, arg)
+			continue
+		}
+		if skipNext {
+			skipNext = false
+			result = append(result, arg)
+			continue
+		}
+
+		if strings.HasPrefix(arg, "-") && !strings.HasPrefix(arg, "--") && len(arg) == 2 {
+			if knownFlags[arg] {
+				if flagsWithValue[arg] {
+					skipNext = true
+				}
+				result = append(result, arg)
+				continue
+			}
+		}
+
+		if strings.HasPrefix(arg, "--") {
+			if flagsWithValue[arg] {
+				skipNext = true
+			}
+			result = append(result, arg)
+			continue
+		}
+
+		if len(arg) >= 2 && arg[0] == '-' && (arg[1] >= '0' && arg[1] <= '9' || arg[1] == '.') {
+			result = append(result, "--")
+			result = append(result, args[i:]...)
+			break
+		}
+
+		result = append(result, arg)
+	}
+	return result
 }
